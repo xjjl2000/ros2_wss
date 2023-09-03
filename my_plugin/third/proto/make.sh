@@ -1,0 +1,1 @@
+protoc -I=./ --cpp_out=./ geometry_msgs.proto

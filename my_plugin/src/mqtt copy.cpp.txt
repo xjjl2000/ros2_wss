@@ -1,0 +1,94 @@
+#include "my_plugin/mqtt.hpp"
+#include <iostream>
+#include <signal.h>
+
+
+namespace rviz2_plugin
+{
+        static bool alive = true;
+        static bool connected = false;
+        Mqtt* Mqtt::instance = nullptr;
+
+        void Mqtt::mqtt_send(){
+                instance = this;
+                // 注册信号处理程序
+                signal(SIGINT, [](int s) { instance->handle_signal(s); });
+                signal(SIGTERM, [](int s) { instance->handle_signal(s); });
+
+                // 初始化 Mosquitto 库
+                mosquitto_lib_init();
+                std::cout<<"mosquitto_lib_init"<<std::endl;
+                
+                struct mosquitto *mosq;
+
+                // 创建 mosquitto 实例  第一个参数是 client_id，表示需要分配给该 mosquitto 实例的客户端ID。
+                mosq = mosquitto_new("people_count_publisher", true, NULL);
+
+                if (mosq)
+                {
+                        mosquitto_connect_callback_set(mosq, connect_callback);
+
+                        // 连接到 MQTT 服务器。第二个参数是代理的主机名或IP地址，本例中将其设置为"localhost"，表示连接到本地主机。
+                        //第三个参数是代理的端口号，本例中设置为1883，这是MQTT协议的默认端口。第四个参数是keepalive值，表示与代理之间的心跳间隔时间
+                        //成功连接时，rc将为0。连接失败或出现错误时，rc将为非零值，可以根据具体错误代码进行调试和处理。
+                        int rc = mosquitto_connect(mosq, "192.168.1.131", 1884, 60);
+                        std::cout<<"rc"<<rc<<std::endl;
+
+
+                        while (alive)
+                        {
+                                if (alive && rc) {
+                                        connected = false;
+                                        mosquitto_reconnect(mosq);
+                                }
+
+                                if (connected)
+                                {
+                                        std::stringstream ss;
+
+                                        int random = (rand() % 3) + 1;
+                                        ss << random;
+
+                                        auto message = ss.str();
+                                std::cout<<"ss"<<ss.str()<<std::endl;
+                                        
+
+                                        rc = mosquitto_publish(
+                                        mosq, NULL, "sensor/people_count", message.size(), message.c_str(), 0, true
+                                        );
+
+                                        if (!rc) {
+                                        std::cout << "Published: " << message << std::endl;
+                                        sleep(5);
+                                        }
+                                }
+
+                                // 处理网络事件 如果返回MOSQ_ERR_SUCCESS，表示成功处理了一个事件。其他返回值表示发生了错误或连接断开等情况。
+                                rc = mosquitto_loop(mosq, -1, 1);
+                        }
+
+                // 清理 mosquitto 实例
+                mosquitto_destroy(mosq);
+        }
+
+        // 释放 Mosquitto 库资源
+        mosquitto_lib_cleanup();
+        }
+
+        void Mqtt::handle_signal(int s)
+        {
+                alive=false;
+                // alive = false;
+        }
+
+        void Mqtt::connect_callback(struct mosquitto *mosq_, void *obj, int result)
+        {
+                std::cout << "Connected to MQTT broker" << std::endl;
+                connected=true;
+                // connected=true;
+        }
+
+
+        
+
+}
