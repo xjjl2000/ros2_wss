@@ -39,6 +39,28 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(
   ${${PROJECT_NAME}_INCLUDE_DIRECTORIES}
 )
+add_library(MyMqttClient
+                        src/callback/CompentsCallback.cpp
+                        src/callback/ConnectCallback.cpp
+                        src/callback/DeliveryComplete.cpp
+                        src/callback/CompentsActionCallback.cpp
+                        src/callback/MessageArrivedCallback.cpp
+                        src/callback/ActionCallback.cpp
+                        src/callback/CallbackFunctionInterface.cpp
+                        src/MyMqttClient.cpp
+)
+# 把库文件复制出目录
+install(DIRECTORY include/
+  DESTINATION include
+)
+install(
+        TARGETS MyMqttClient
+        LIBRARY DESTINATION lib
+        )
+#从目录中把文件注册到ros2环境空间
+ament_export_include_directories(include)
+ament_export_libraries(MyMqttClient)
+
 target_sources (listener PRIVATE 
                         src/callback/CompentsCallback.cpp
                         src/callback/ConnectCallback.cpp

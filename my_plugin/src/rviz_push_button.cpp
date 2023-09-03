@@ -64,6 +64,7 @@
 #include <arpa/inet.h>
 
 #include "mosquitto.h"
+#include "MyMqttClient.hpp"
 
 #define DEST_PORT 8000
 #define DSET_IP_ADDRESS  "192.168.1.131"

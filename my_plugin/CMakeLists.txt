@@ -40,6 +40,7 @@ find_package(Eigen3 REQUIRED)
 find_package(rviz2 REQUIRED)
 find_package(class_loader REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(rosmsg2pbmsg REQUIRED)
 
 
 
@@ -84,6 +85,7 @@ set(${PROJECT_NAME}_INCLUDE_DIRECTORIES
   ${rviz_common_INCLUDE_DIRS}
   ${rviz2_INCLUDE_DIRS}
   ${Eigen3_INCLUDE_DIRS}
+  ${rosmsg2pbmsg_INCLUDE_DIRS}
 
 
 
@@ -131,7 +133,7 @@ ament_target_dependencies(rviz_push_button
   pluginlib
   rviz2
   nav_msgs
-  
+  rosmsg2pbmsg
 
 )
 target_link_libraries(rviz_push_button
