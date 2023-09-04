@@ -8,10 +8,9 @@ namespace rviz2_plugin
 {
 
 
-        void CameraModule::image_callback(const geometry_msgs::msg::Twist::ConstSharedPtr msg,QLabel *label1,QLabel *label2)
+        void CameraModule::image_callback()
         {
-                label1->setText(QString::number(msg->linear.x,'f',2));
-                label2->setText(QString::number(msg->angular.z,'f',2));
+                
         }
 
 }

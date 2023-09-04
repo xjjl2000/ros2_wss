@@ -72,6 +72,8 @@ class Convert : public rclcpp::Node
         MyMqttClient mqtt_image_pub;
         MyMqttClient mqtt_image_sub;
 
+        MyMqttClient mqtt_cmdvel_sub;
+
 };
 
 #endif  // MINIMAL_SUBSCRIBER_HPP

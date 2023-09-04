@@ -40,8 +40,6 @@ find_package(Eigen3 REQUIRED)
 find_package(rviz2 REQUIRED)
 find_package(class_loader REQUIRED)
 find_package(pluginlib REQUIRED)
-find_package(rosmsg2pbmsg REQUIRED)
-
 
 
 #add_subdirectory(src/private_interface)
@@ -85,7 +83,7 @@ set(${PROJECT_NAME}_INCLUDE_DIRECTORIES
   ${rviz_common_INCLUDE_DIRS}
   ${rviz2_INCLUDE_DIRS}
   ${Eigen3_INCLUDE_DIRS}
-  ${rosmsg2pbmsg_INCLUDE_DIRS}
+  #${rosmsg2pbmsg_INCLUDE_DIRS}
 
 
 
@@ -109,6 +107,8 @@ include_directories(${PROJECT_SOURCE_DIR}
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 find_package(Mosquitto REQUIRED)
+find_package(eclipse-paho-mqtt-c REQUIRED)
+link_directories(/usr/local/lib)
 include_directories(${MOSQUITTO_INCLUDE_DIR})
 
 add_library(rviz_push_button
@@ -133,7 +133,7 @@ ament_target_dependencies(rviz_push_button
   pluginlib
   rviz2
   nav_msgs
-  rosmsg2pbmsg
+  #rosmsg2pbmsg
 
 )
 target_link_libraries(rviz_push_button
@@ -150,7 +150,7 @@ target_link_libraries(rviz_push_button
 )
 
 add_subdirectory(third/Image_protobuf)
-target_link_libraries(rviz_push_button Qt5::Charts general_img_pb3 )
+target_link_libraries(rviz_push_button Qt5::Charts general_img_pb3 paho-mqttpp3 paho-mqtt3a)
 # target_compile_options(rviz_push_button PRIVATE -Werror)
 # Ends
 

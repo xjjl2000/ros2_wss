@@ -29,14 +29,20 @@ Convert::Convert() : Node("listener"), count_(0)
   auto sub_callback_ptr_r = sub_callback_ptr.get();
   sub_callback_ptr_r->setConnectedFunc(std::make_shared<PrintConnectedCallback>());
   sub_callback_ptr_r->setConnectionLostFunc(std::make_shared<ReConnectConnectionLostCallback>( actionCallbackPtr));
-  sub_callback_ptr_r->setMessageArrivedFunc(std::make_shared<PrintMessageSizeArrivedCallback>());
+  sub_callback_ptr_r->setMessageArrivedFunc(std::make_shared<PrintMessageArrivedCallback>());
  
   mqtt_image_sub=MyMqttClient ("mqttpublish_img","192.168.2.107", 1884,
                             sub_conn_opts,
                             sub_callback_ptr,
                             actionCallbackPtr
                             );
-  mqtt_image_sub.sub("mqttpublish",0); 
+  mqtt_image_sub.sub("mqtt_image",0); 
+
+  mqtt_cmdvel_sub=MyMqttClient("cmd_mqtt","192.168.2.107",1884,
+                            sub_conn_opts,
+                            sub_callback_ptr,
+                            actionCallbackPtr);
+  mqtt_cmdvel_sub.sub("mqtt_cmd_vel",0);
 
 
 
@@ -175,7 +181,7 @@ void Convert::image_b_callback(const sensor_msgs::msg::Image::ConstSharedPtr msg
   std::string compressed_data;
   compress_data(ser_msg, compressed_data);
   std::cout << "compressed_size:" << compressed_data.size() << std::endl;
-  mqtt_image_pub.pub("imagemqtt", compressed_data,0);
+  mqtt_image_pub.pub("mqtt_image", compressed_data,0);
 
   // // 将buffer转换为vector<uint8_t>
   // std::vector<uint8_t> vector_data(ser_msg.begin(), ser_msg.end());
@@ -279,7 +285,7 @@ void Convert::Compressedimage_mqtt_callback(const sensor_msgs::msg::CompressedIm
   // std::cout << "ccccompressed_size:" << compressed_data.size() << std::endl;
   
   
-  mqtt_image_pub.pub("mqttpublish",ser_msg,0);
+  mqtt_image_pub.pub("mqtt_image",ser_msg,0);
   
 }
 

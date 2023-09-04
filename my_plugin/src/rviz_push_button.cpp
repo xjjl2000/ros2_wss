@@ -64,7 +64,7 @@
 #include <arpa/inet.h>
 
 #include "mosquitto.h"
-#include "MyMqttClient.hpp"
+//#include "MyMqttClient.hpp"
 
 #define DEST_PORT 8000
 #define DSET_IP_ADDRESS  "192.168.1.131"
@@ -131,14 +131,13 @@ namespace rviz2_plugin
 
     void VR_interaLsys::onInitialize()
     {
-
+        // auto pub_conn_opts = mqtt::connect_options_builder()
+        //     .clean_session()
+        //     .will(mqtt::message("mqttpublish",  "Last will and testament.", 0))
+        //     .finalize();
         
         auto intra_comms_options = rclcpp::NodeOptions{}.use_intra_process_comms(true);
 
-        // Mqtt_pub t("192.168.1.131",1884);
-        // t.init();
-        // t.pub_message(1,"6666");
-        // t.publish("huati","666");
         geometry_msg::Twist cmdmsg;
         cmdmsg.set_angular_x(0);
         cmdmsg.set_angular_y(0);
@@ -149,18 +148,12 @@ namespace rviz2_plugin
         std::string ser_msg;
         cmdmsg.SerializeToString(&ser_msg);
 
+        // auto pub_callback_ptr = std::make_shared<CompentsCallback>();
+        // auto pub_callback_ptr_r = pub_callback_ptr.get();
+        // MyMqttClient mqtt_cmd_pub=MyMqttClient("mqtt_cmd_","192.168.2.107",1884,
+        //                   pub_conn_opts,pub_callback_ptr);
+        // mqtt_cmd_pub.pub("mqtt_cmd_vel",ser_msg,0);
         
-        Mqtt_pub t("192.168.2.107",1884);
-        t.init();
-        const int MAXLENS=1024*1024*8;
-        //const int MAXLENS=20;
-        std::string s(MAXLENS+1,'a'); 
-        s[MAXLENS]  =0;      
-        //s[10]  =0;   
-        // t.pub_message("huati","huati_test");
-        //t.pub_message("mqttpublish","hello,world!");
-        // t.pub_message("mqttpublish",s);
-        t.pub_message("cmd_vel",ser_msg);
 
 
         geometry_msg::Twist cmdmsgde;

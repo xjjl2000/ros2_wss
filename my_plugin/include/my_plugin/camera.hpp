@@ -13,7 +13,7 @@ namespace rviz2_plugin
     {
     public:
 
-        void image_callback(const geometry_msgs::msg::Twist::ConstSharedPtr msg,QLabel *label1,QLabel *label2);
+        void image_callback();
 
 
     };
