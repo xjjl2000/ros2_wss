@@ -69,6 +69,7 @@
 #include "rviz_common/display.hpp"
 
 #include "mosquitto.h"
+#include "MyMqttClient.hpp"
 
 
 
@@ -123,6 +124,7 @@ namespace rviz2_plugin
 
 
   protected:
+    MyMqttClient mqtt_image_sub;
     Ui::myWidget* ui_;
     QWidget *widget_;
     QVector<QPointF> points;

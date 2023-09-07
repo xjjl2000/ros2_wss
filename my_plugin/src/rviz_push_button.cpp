@@ -64,7 +64,13 @@
 #include <arpa/inet.h>
 
 #include "mosquitto.h"
-//#include "MyMqttClient.hpp"
+#include "MyMqttClient.hpp"
+#include "callback/ActionCallback.hpp"
+#include "callback/CallbackFunctionInterface.hpp"
+#include "callback/ConnectCallback.hpp"
+#include "callback/DeliveryComplete.hpp"
+#include "my_plugin/mqttClient/MessageArrivedCallback.hpp"
+
 
 #define DEST_PORT 8000
 #define DSET_IP_ADDRESS  "192.168.1.131"
@@ -159,17 +165,27 @@ namespace rviz2_plugin
         geometry_msg::Twist cmdmsgde;
         cmdmsgde.ParseFromArray(ser_msg.data(),ser_msg.size());
         std::cout<<"deser:"<<cmdmsgde.linear_x()<<std::endl;
-        // Mqtt_sub s("192.168.1.131",1884);
-        // s.init();
-        // std::string image_b_mqtt=s.sub("imagemqtt");
-        // sensors_msg::ImageProto msg_pb;
-        // msg_pb.ParseFromString(msg_pb.data().data());
-        // cv::Mat converted_image = convertToCVMat(msg_pb);
-        //     // 显示图像在 UI 上
-        // QImage img(converted_image.data, converted_image.cols, converted_image.rows, 
-        //             converted_image.step, QImage::Format_RGB888);
 
-        // ui_->label_image_back_virtual->setPixmap(QPixmap::fromImage(img).scaled(ui_->label_image->width(), ui_->label_image->height()));
+        mqtt::connect_options   sub_conn_opts;
+        sub_conn_opts.set_clean_session(false);
+
+        auto actionCallbackPtr = std::make_shared<CompentsActionCallback>();
+        auto cac_ptr=actionCallbackPtr.get();
+        std::string sub_name = "ActionCallback1";
+        cac_ptr->setFailureFunc(std::make_shared<FailureCallback>(sub_name));
+        cac_ptr->setSuccessFunc(std::make_shared<SuccessCallback>(sub_name));
+        auto sub_callback_ptr = std::make_shared<CompentsCallback>();
+        auto sub_callback_ptr_r = sub_callback_ptr.get();
+        sub_callback_ptr_r->setConnectedFunc(std::make_shared<PrintConnectedCallback>());
+        sub_callback_ptr_r->setConnectionLostFunc(std::make_shared<ReConnectConnectionLostCallback>( actionCallbackPtr));
+        sub_callback_ptr_r->setMessageArrivedFunc(std::make_shared<QlabelShowMessageArrivedCallback>(ui_->label_image,ui_->imageFrontTime_label));
+        
+        mqtt_image_sub=MyMqttClient ("mqtt_img","192.168.2.107", 1884,
+                                    sub_conn_opts,
+                                    sub_callback_ptr,
+                                    actionCallbackPtr
+                                    );
+        mqtt_image_sub.sub("mqtt_image",0); 
 
 
 
@@ -193,7 +209,7 @@ namespace rviz2_plugin
         //后置摄像头compressed
         // const auto qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort();      
         image_back_compressed_sub_A = node_->create_subscription<sensor_msgs::msg::CompressedImage>
-        ("/rear_camera/camera/image_raw/compressed_AA", qos, std::bind(&VR_interaLsys::A_back_compressed_imagecallback,this,std::placeholders::_1));
+        ("/rear_camera/camera/image_raw/compressed", qos, std::bind(&VR_interaLsys::A_back_compressed_imagecallback,this,std::placeholders::_1));
         image_back_compressed_sub_B = node_->create_subscription<sensor_msgs::msg::CompressedImage>
         ("/rear_camera_nx/camera/image_raw/compressed_B", qos, std::bind(&VR_interaLsys::B_back_compressed_imagecallback,this,std::placeholders::_1));
 

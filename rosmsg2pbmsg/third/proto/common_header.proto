@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package common;
+
+message Header {
+
+    int32 header_stamp_sec = 1;
+
+    int32 header_stamp_nanosec = 2;
+
+    string frame_id = 3;
+}

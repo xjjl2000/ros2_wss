@@ -1,1 +1,1 @@
-protoc -I=./ --cpp_out=./ pointcloud2.proto
+protoc -I=./ --cpp_out=./ Imu_msgs.proto
