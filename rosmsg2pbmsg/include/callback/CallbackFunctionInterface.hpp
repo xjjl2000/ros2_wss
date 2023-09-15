@@ -3,8 +3,9 @@
 #define CALLBACKFUCTIONINTERFACE_HPP
 
 #include<mqtt/async_client.h>
+#include "qlabel.h"
 
-class CallbackFunctionInterface
+class CallbackFunctionInterface:public QObject
 {
 private:
        mqtt::connect_options connOpts;

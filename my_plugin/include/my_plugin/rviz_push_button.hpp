@@ -11,6 +11,8 @@
 #include "sensor_msgs/msg/image.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 #include "sensor_msgs/msg/magnetic_field.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
+
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/pose.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
@@ -52,8 +54,6 @@
 #include <my_plugin/car_init.hpp>
 #include <my_plugin/camera.hpp>
 #include <my_plugin/cmd_speed.hpp>
-#include "my_plugin/mqtt_pub.hpp"
-#include "my_plugin/mqtt_sub.hpp"
 
 
 
@@ -68,11 +68,15 @@
 #include "rviz_common/panel.hpp"
 #include "rviz_common/display.hpp"
 
-#include "mosquitto.h"
 #include "MyMqttClient.hpp"
+#include <QMutex>
 
-
-
+#include "vtkRenderWindow.h"
+#include <pcl/common/common_headers.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/visualization/cloud_viewer.h>
+#include <pcl/console/parse.h>
 
 
 QT_CHARTS_USE_NAMESPACE
@@ -119,13 +123,23 @@ namespace rviz2_plugin
     void onEnable();
     void onDisable();
 
+
     
 
 
 
   protected:
+
+    
+
     MyMqttClient mqtt_image_sub;
+    MyMqttClient mqtt_cmd_sub;
+    MyMqttClient mqtt_imu_sub;
+
+
+    MyMqttClient mqtt_cmd_pub;
     Ui::myWidget* ui_;
+    QMutex qMtuxLabel1,qMtuxLabel2;
     QWidget *widget_;
     QVector<QPointF> points;
     QVector<QPointF> points_B;
@@ -224,6 +238,7 @@ namespace rviz2_plugin
     imuchart Acc_B,Angual_B,Mag_B;
 
     lasttime A,B;
+    std::vector<timespec> intervals;
     
 
 
@@ -259,6 +274,11 @@ namespace rviz2_plugin
   protected:
     rclcpp::Node::SharedPtr node_;
     rclcpp::executors::MultiThreadedExecutor executor_;
+
+
+    // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud ;
+    pcl::visualization::PCLVisualizer::Ptr view;
+    uint8_t r, g, b;
     
     //图像
     //前置
@@ -326,6 +346,9 @@ namespace rviz2_plugin
     rclcpp::Subscription<std_msgs::msg::ByteMultiArray>::SharedPtr pointcloud2pb_sub_A;
     rclcpp::Subscription<std_msgs::msg::ByteMultiArray>::SharedPtr pointcloud2pb_sub_B;
 
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laser;
+
+
 
 
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pb_2_cloud2_A;
@@ -337,6 +360,9 @@ namespace rviz2_plugin
 
 
     cv_bridge::CvImagePtr cv_ptr;
+  
+  signals:
+    void updateLabel(QLabel* label,QPixmap & data);
 
 
     
@@ -429,6 +455,7 @@ namespace rviz2_plugin
     void pointcloud2pb_callback(const std_msgs::msg::ByteMultiArray::ConstSharedPtr pointcloud2pb_msg);//未拆开
     void pointcloud2pb_callback_A(const std_msgs::msg::ByteMultiArray::ConstSharedPtr pointcloud2pb_msg);
     void pointcloud2pb_callback_B(const std_msgs::msg::ByteMultiArray::ConstSharedPtr pointcloud2pb_msg);
+    void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr msg);
 
     // void mqtt_send();
     // void mqtt_receive();
@@ -496,6 +523,7 @@ namespace rviz2_plugin
 
     void addfreq(double hz);
     double getMedian();
+    void updateLabelSlot(QLabel* label,QPixmap & data);
 
 
 

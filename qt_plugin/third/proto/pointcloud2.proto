@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package pointcloud2;
+
+
+message pointField_pb
+{
+  string name = 1;
+  int32  offset = 2;
+  int32  datatype = 3;
+  int32  count = 4;
+}
+
+message point_pb {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float reflectivity=4;
+  uint32 tag=5;
+  uint32 line=6;
+}
+
+message pointCloud2_pb
+{
+  int32 stamp_sec = 1;
+  int32 stamp_nanosec=2;
+  string frame_id = 3;
+  uint32 height = 4;
+  uint32 width = 5;
+  repeated pointField_pb fields = 6;
+  bool is_bigendian = 7;
+  uint32 point_step = 8;
+  uint32 row_step = 9;
+  bytes data = 10;
+  bool is_dense = 11;
+  uint64 send_time = 12;
+  float convert_time = 13;
+  uint32 send_count = 14;
+  repeated point_pb points = 15;
+
+}

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package sensors_msg;
+
+
+message ImageProto {
+    
+    int32 header_stamp_sec = 1;
+    int32 header_stamp_nanosec=2;
+    string header_frame_id = 3;
+
+    uint32 height = 4;
+    uint32 width = 5;
+    uint32 step=6;
+
+    string format = 7;
+    bytes data = 8;
+
+}

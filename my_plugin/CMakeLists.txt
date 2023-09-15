@@ -30,7 +30,7 @@ find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(private_interface REQUIRED) 
-find_package(Qt5 5.12 COMPONENTS Core Widgets Gui Charts REQUIRED)
+find_package(Qt5 5.12 COMPONENTS Core Widgets Gui Charts Network REQUIRED)
 find_package(Qt5UiTools REQUIRED)
 find_package(Qt5Core REQUIRED)
 find_package(Protobuf REQUIRED)
@@ -41,6 +41,18 @@ find_package(rviz2 REQUIRED)
 find_package(class_loader REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rosmsg2pbmsg REQUIRED)
+find_package(PCL 1.10 REQUIRED)
+find_package(VTK COMPONENTS
+  vtkCommonCore
+  vtkFiltersSources
+  vtkGUISupportQt
+  vtkIOImage
+  vtkInteractionImage
+  vtkFiltersCore
+  vtkInfovisCore
+  vtkInteractionStyle
+)
+include(${VTK_USE_FILE})
 
 
 #add_subdirectory(src/private_interface)
@@ -53,9 +65,10 @@ set(${PROJECT_NAME}_SRCS
   src/rviz_push_button.cpp
   src/camera.cpp
   src/cmd_speed.cpp
-  src/mqtt_pub.cpp
-  src/mqtt_sub.cpp
+  #src/mqtt_pub.cpp
+  #src/mqtt_sub.cpp
   src/mqttClient/MessageArrivedCallback.cpp
+  src/UdpMessage.cpp
 
 
 
@@ -85,7 +98,7 @@ set(${PROJECT_NAME}_INCLUDE_DIRECTORIES
   ${rviz2_INCLUDE_DIRS}
   ${Eigen3_INCLUDE_DIRS}
   ${rosmsg2pbmsg_INCLUDE_DIRS}
-
+  ${PCL_INCLUDE_DIRS}
 
 
 )
@@ -98,6 +111,9 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 qt5_wrap_cpp(${PROJECT_NAME}_MOCS ${${PROJECT_NAME}_HDRS})
 qt5_wrap_ui(${PROJECT_NAME}_UIS_H ${${PROJECT_NAME}_UIS})
 
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
 include_directories(
   ${${PROJECT_NAME}_INCLUDE_DIRECTORIES}
 )
@@ -107,10 +123,10 @@ include_directories(${PROJECT_SOURCE_DIR}
         )
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-find_package(Mosquitto REQUIRED)
+#find_package(Mosquitto REQUIRED)
 find_package(eclipse-paho-mqtt-c REQUIRED)
 link_directories(/usr/local/lib)
-include_directories(${MOSQUITTO_INCLUDE_DIR})
+#include_directories(${MOSQUITTO_INCLUDE_DIR})
 
 add_library(rviz_push_button
   ${${PROJECT_NAME}_SRCS}
@@ -136,22 +152,24 @@ ament_target_dependencies(rviz_push_button
   nav_msgs
   rosmsg2pbmsg
 
+
 )
 target_link_libraries(rviz_push_button
   Qt5::Widgets
   Qt5::Core
   Qt5::Gui
   Qt5::UiTools
+  Qt5::Network
   rviz_common::rviz_common
   rviz_rendering::rviz_rendering
   rviz_ogre_vendor::OgreMain
   rviz_ogre_vendor::OgreOverlay
-  mosquitto
+  #mosquitto
 
 )
 
 add_subdirectory(third/Image_protobuf)
-target_link_libraries(rviz_push_button Qt5::Charts general_img_pb3 paho-mqttpp3 paho-mqtt3a)
+target_link_libraries(rviz_push_button Qt5::Charts general_img_pb3 paho-mqttpp3 paho-mqtt3a ${PCL_LIBRARIES} ${VTK_LIBRARIES})
 # target_compile_options(rviz_push_button PRIVATE -Werror)
 # Ends
 

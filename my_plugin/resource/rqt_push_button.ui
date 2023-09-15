@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1222</width>
+    <width>1869</width>
     <height>849</height>
    </rect>
   </property>
@@ -4555,7 +4555,24 @@ border-color: rgb(0,0,0);</string>
     </widget>
    </widget>
   </widget>
+  <widget class="QVTKWidget" name="qvtkWidget">
+   <property name="geometry">
+    <rect>
+     <x>1220</x>
+     <y>20</y>
+     <width>621</width>
+     <height>821</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QVTKWidget</class>
+   <extends>QWidget</extends>
+   <header>QVTKWidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

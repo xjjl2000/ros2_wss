@@ -109,7 +109,7 @@ include_directories(${PROJECT_SOURCE_DIR}
         ${ZLIB_INCLUDE_DIRS})
 add_subdirectory(third/sensor_protobuf)
   
-target_link_libraries(listener _pb3 Qt5::Widgets mosquitto ${ZLIB_LIBRARIES} paho-mqttpp3 paho-mqtt3a)
+target_link_libraries(listener _pb3 Qt5::Widgets  ${ZLIB_LIBRARIES} paho-mqttpp3 paho-mqtt3a)
 
 
 

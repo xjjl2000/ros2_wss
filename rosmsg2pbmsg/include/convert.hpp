@@ -71,6 +71,9 @@ class Convert : public rclcpp::Node
 
         MyMqttClient mqtt_image_pub;
         MyMqttClient mqtt_image_sub;
+        MyMqttClient mqtt_imu_pub;
+        MyMqttClient mqtt_cloud_pub;
+        
 
         MyMqttClient mqtt_cmdvel_sub;
 
