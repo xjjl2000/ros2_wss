@@ -255,6 +255,26 @@ namespace rviz2_plugin
                                     imuActionCallbackPtr);
         mqtt_imu_sub.sub("mqtt_imu", 0);
 
+
+
+        auto cloudActionCallbackPtr = std::make_shared<CompentsActionCallback>();
+        auto cloudCac_ptr = cloudActionCallbackPtr.get();
+        std::string cloud_sub_name = "ActionCallback_cloud";
+        cloudCac_ptr->setFailureFunc(std::make_shared<FailureCallback>(cloud_sub_name));
+        cloudCac_ptr->setSuccessFunc(std::make_shared<SuccessCallback>(cloud_sub_name));
+        auto cloud_sub_callback_ptr = std::make_shared<CompentsCallback>();
+        auto cloud_sub_callback_ptr_r = cloud_sub_callback_ptr.get();
+        cloud_sub_callback_ptr_r->setConnectedFunc(std::make_shared<PrintConnectedCallback>());
+        cloud_sub_callback_ptr_r->setConnectionLostFunc(std::make_shared<ReConnectConnectionLostCallback>(cloudActionCallbackPtr));
+        cloud_sub_callback_ptr_r->setMessageArrivedFunc(
+            std::make_shared<QlabelShowMessageArrivedCallback>(ui_->cloudTime_label,ui_->cloudHz_label,ui_->imageBackHz_label));
+
+        mqtt_cloud_sub = MyMqttClient("mqtt_cloudmsg", "192.168.2.107", 1884,
+                                    sub_conn_opts,
+                                    cloud_sub_callback_ptr,
+                                    cloudActionCallbackPtr);
+        mqtt_cloud_sub.sub("mqtt_pointcloud2", 0);
+
         node_ = std::make_shared<rclcpp::Node>("myrviznode");
         par_V = node_->create_publisher<std_msgs::msg::String>("controller_parm", 10);
 
@@ -392,6 +412,14 @@ namespace rviz2_plugin
         // rclcpp::spin(node_);
         // rclcpp::spin_some(node_);
         spin_thread_ = std::thread(&VR_interaLsys::spin, this);
+
+        //test pcl
+
+        
+        
+        
+
+
     }
 
     void VR_interaLsys::onEnable()
@@ -691,7 +719,41 @@ namespace rviz2_plugin
 
             // 发送序列化后的数据
             udpSocket.writeDatagram(msgByteArray, QHostAddress("localhost"), 23912); // 将目标 IP 和端口指定为接收端的地址和端口
-            // ui_->label_image_back->setPixmap(t);
+            //ui_->label_image_back->setPixmap(t);
+
+        //testpcl
+        // const int ITER_POINT_NUM=100;
+        //     view->removeAllPointClouds();
+        //     auto start = std::chrono::high_resolution_clock::now();
+
+        //     pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
+        //     uint8_t r(120), g(120), b(120);
+        //     for (size_t i = 0; i < ITER_POINT_NUM; ++i){
+        //         pcl::PointXYZRGB point;
+        //         point.x = 0.1*i;
+        //         point.y = 0.1*i;
+        //         point.z = 0;
+        //             uint32_t rgb = (static_cast<uint32_t>(r) << 16 |
+        //                             static_cast<uint32_t>(g) << 8 | static_cast<uint32_t>(b));
+        //             point.rgb = *reinterpret_cast<float *>(&rgb);
+        //             point_cloud_ptr->points.push_back(point);
+        //     }
+            
+        //     point_cloud_ptr->width = (int)point_cloud_ptr->points.size();
+        //     point_cloud_ptr->height = 1;
+            
+        //     view->addPointCloud(point_cloud_ptr, "cloud");
+        //     ui_->qvtkWidget->update();
+        //     auto end = std::chrono::high_resolution_clock::now();
+        //     view->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,3,"cloud");
+
+        // // 计算时间差
+        //     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+        //     // 输出执行时间
+        //     std::cout << "程序执行时间: " << duration.count() << " 毫秒" << std::endl;
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
             // qMtuxLabel1.unlock();
             // cv::waitKey(1);
         }
@@ -707,21 +769,31 @@ namespace rviz2_plugin
         // delay
 
         // hz
+
         if (this->image_At_b.nanosec)
         {
             struct timespec image_back_t = {0, 0};
             clock_gettime(CLOCK_REALTIME, &image_back_t);
-            if (this->lastTime1.tv_sec != 0)
+            if (message_count == 0)
             {
-                double hz = 1 / ((image_back_t.tv_nsec - this->lastTime1.tv_nsec) * 1e-9 + (image_back_t.tv_sec - this->lastTime1.tv_sec));
-                this->ui_->imageBackHz_label->setText(QString::number(hz, '1', 1));
+                clock_gettime(CLOCK_REALTIME, &start_time);
             }
-            this->lastTime1 = image_back_t;
+            message_count++;
+            double hz = message_count / ((image_back_t.tv_sec + image_back_t.tv_nsec * 1e-9) - (start_time.tv_sec + start_time.tv_nsec * 1e-9));
+            this->ui_->imageBackHz_label->setText(QString::number(hz, '1', 1));
+            // if (this->lastTime1.tv_sec != 0)
+            // {
+            //     double hz = 1 / ((image_back_t.tv_nsec - this->lastTime1.tv_nsec) * 1e-9 + (image_back_t.tv_sec - this->lastTime1.tv_sec));
+            //     this->ui_->imageBackHz_label->setText(QString::number(hz, '1', 1));
+            // }
+            // this->lastTime1 = image_back_t;
 
             int t0 = image_back_t.tv_sec;
             int t1 = image_back_t.tv_nsec;
             double image_back_delayt = (t0 + t1 * 1e-9) - (msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9);
-            this->ui_->imageBackTime_label->setText(QString::number(image_back_delayt, 'f', 3));
+            delay+=image_back_delayt;
+            double aver_delayt=delay/message_count;
+            this->ui_->imageBackTime_label->setText(QString::number(aver_delayt, 'f', 3));
         }
     }
     void VR_interaLsys::B_back_compressed_imagecallback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg)

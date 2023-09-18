@@ -28,6 +28,10 @@ private:
       int sec;
     }stamp_t;
   stamp_t image_Bt_b,cloud_t;
+  int message_count = 0;
+  struct timespec start_time;
+  double delay=0;
+
 
   void dealCmdvelMessages(mqtt::const_message_ptr,QLabel *label,QLabel *label1);
   void dealImageMessages(mqtt::const_message_ptr,QLabel *label,QLabel *label1,QLabel *label2);

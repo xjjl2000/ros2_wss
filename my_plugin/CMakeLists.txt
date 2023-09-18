@@ -169,7 +169,7 @@ target_link_libraries(rviz_push_button
 )
 
 add_subdirectory(third/Image_protobuf)
-target_link_libraries(rviz_push_button Qt5::Charts general_img_pb3 paho-mqttpp3 paho-mqtt3a ${PCL_LIBRARIES} ${VTK_LIBRARIES})
+target_link_libraries(rviz_push_button Qt5::Charts general_img_pb3 paho-mqttpp3 paho-mqtt3a ${PCL_LdouIBRARIES} ${VTK_LIBRARIES})
 # target_compile_options(rviz_push_button PRIVATE -Werror)
 # Ends
 

@@ -4,6 +4,12 @@
 #include "rclInclude.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
+#include "vtkRenderWindow.h"
+#include <pcl/common/common_headers.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/visualization/cloud_viewer.h>
+#include <pcl/console/parse.h>
 
 class PointCloudMsg : public rclcpp::Node
 {

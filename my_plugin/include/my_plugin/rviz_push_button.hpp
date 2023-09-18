@@ -135,6 +135,7 @@ namespace rviz2_plugin
     MyMqttClient mqtt_image_sub;
     MyMqttClient mqtt_cmd_sub;
     MyMqttClient mqtt_imu_sub;
+    MyMqttClient mqtt_cloud_sub;
 
 
     MyMqttClient mqtt_cmd_pub;
@@ -143,6 +144,12 @@ namespace rviz2_plugin
     QWidget *widget_;
     QVector<QPointF> points;
     QVector<QPointF> points_B;
+
+    int message_count = 0;
+    struct timespec start_time;
+    double delay=0;
+
+
     
     size_t hzt,hhzt;
 

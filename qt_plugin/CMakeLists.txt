@@ -31,6 +31,20 @@ find_package(Qt5UiTools REQUIRED)
 find_package(Qt5Core REQUIRED)
 find_package(tf2 REQUIRED)
 include_directories(${tf2_INCLUDE_DIRS})
+find_package(PCL 1.10 REQUIRED)
+find_package(VTK COMPONENTS
+  vtkCommonCore
+  vtkFiltersSources
+  vtkGUISupportQt
+  vtkIOImage
+  vtkInteractionImage
+  vtkFiltersCore
+  vtkInfovisCore
+  vtkInteractionStyle
+)
+find_package(pcl_conversions REQUIRED)
+
+include(${VTK_USE_FILE})
 
 
 
@@ -45,6 +59,8 @@ set(${PROJECT_NAME}_INCLUDE_DIRECTORIES
           ${rosmsg2pbmsg_INCLUDE_DIRS}
           ${std_msgs_INCLUDE_DIRS}
           ${Qt5Widgets_INCLUDE_DIRS}
+          ${PCL_INCLUDE_DIRS}
+
 
 
 )   
@@ -53,6 +69,9 @@ set(OpenCV_DIR /usr/local/share/OpenCV)
 message(STATUS "version: ${OpenCV_VERSION}")
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
+
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
 
 include_directories(
   ${${PROJECT_NAME}_INCLUDE_DIRECTORIES})
@@ -79,6 +98,7 @@ ament_target_dependencies (msgTransit
   image_transport
   nav_msgs
   rosmsg2pbmsg
+  pcl_conversions
 
 )
 
@@ -92,8 +112,15 @@ target_sources (msgTransit PRIVATE  src/RosMessage/imagemsg.cpp
                                     src/RosMessage/wheelSpeed.cpp
 
                                     src/mqttClient/MessageArrivedCallback.cpp
-                                    
+
                                     src/Udpmessage/UdpMessage.cpp
+                                    include/handleserver/MyPoint.hpp
+
+                                    src/RosMessage/MainNode.cpp
+
+                                    src/rosserver/RosPointCloud2Callback.cpp
+                                    src/rosserver/RosImageCallback.cpp
+                                    include/rosserver/RosCallbackInterface.hpp
 )
 
 add_subdirectory(third/sensor_protobuf)
@@ -106,6 +133,8 @@ target_link_libraries(msgTransit
       Qt5::Gui
       Qt5::UiTools
       Qt5::Network
+      ${PCL_LdouIBRARIES} 
+      ${VTK_LIBRARIES}
 )
 
 install (TARGETS msgTransit DESTINATION lib/${PROJECT_NAME})

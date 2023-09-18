@@ -102,8 +102,8 @@ void ImageMsg::A_r_compressed_imagecallback(const sensor_msgs::msg::CompressedIm
   {
     cv_bridge::CvImagePtr cv_ptr_compressed = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
     cv::Mat imgCallback;
-    if (cv_ptr_compressed == nullptr)
-      throw std::runtime_error("765 nullptr");
+    // if (cv_ptr_compressed == nullptr)
+    //   throw std::runtime_error("765 nullptr");
     // imgCallback = cv_ptr_compressed->image;
     cv_ptr_compressed->image.copyTo(imgCallback);
     QImage img = convertToQImage(imgCallback).scaled(265, 150);
