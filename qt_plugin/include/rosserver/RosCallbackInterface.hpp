@@ -3,30 +3,31 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-
-template<
-  typename MessageT,
-  typename CallbackT>
+template <
+    typename MessageT,
+    typename CallbackT>
 
 class RosCallbackInterface
 {
-        private:
-        virtual void callback(const CallbackT msg)=0;
+private:
+        virtual void callback(const CallbackT msg) = 0;
         typename rclcpp::Subscription<MessageT>::SharedPtr subPtr;
+        typename rclcpp::Publisher<MessageT>::SharedPtr pubPtr;
+
         std::string topic;
-        rclcpp::Node* node;
+        rclcpp::Node *node;
 
+public:
+        RosCallbackInterface(const std::string topic, rclcpp::Node *node) : topic(topic), node(node) {}
 
-        public:
-        RosCallbackInterface(const std::string topic,rclcpp::Node* node):topic(topic),node(node){}
-
-        void sub(const rclcpp::QoS & qos){
-                subPtr = node->create_subscription<MessageT>
-                        (topic, qos, std::bind(&RosCallbackInterface::callback, this, std::placeholders::_1));
-
+        void sub(const rclcpp::QoS &qos)
+        {
+                subPtr = node->create_subscription<MessageT>(topic, qos, std::bind(&RosCallbackInterface::callback, this, std::placeholders::_1));
         };
 
-
-
+        void pub(const rclcpp::QoS &qos)
+        {
+                pubPtr = node->create_publisher<MessageT>(topic, qos);
+        };
 };
 #endif

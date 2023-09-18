@@ -103,21 +103,16 @@ ament_target_dependencies (msgTransit
 )
 
 
-target_sources (msgTransit PRIVATE  src/RosMessage/imagemsg.cpp
-                                    src/RosMessage/pointcloud2msg.cpp
-                                    src/RosMessage/imumsg.cpp
-                                    src/RosMessage/cmdvelmsg.cpp
-                                    src/RosMessage/location.cpp
-                                    src/RosMessage/pushButton.cpp
-                                    src/RosMessage/wheelSpeed.cpp
-
-                                    src/mqttClient/MessageArrivedCallback.cpp
+target_sources (msgTransit PRIVATE  src/mqttClient/MessageArrivedCallback.cpp
 
                                     src/Udpmessage/UdpMessage.cpp
                                     include/handleserver/MyPoint.hpp
 
                                     src/RosMessage/MainNode.cpp
-
+                                    src/rosserver/RosCmdVelCallback.cpp
+                                    src/rosserver/RosLocationCallback.cpp
+                                    src/rosserver/RosImuCallback.cpp
+                                    src/rosserver/RosWheelSpeedCallback.cpp
                                     src/rosserver/RosPointCloud2Callback.cpp
                                     src/rosserver/RosImageCallback.cpp
                                     include/rosserver/RosCallbackInterface.hpp

@@ -30,6 +30,30 @@ typedef struct
       struct timespec pointcloud2;
 } lasttime;
 
+typedef struct
+{
+      float x;
+      float y;
+      float z;
+} xyz;
+typedef struct
+{
+      xyz Acc;
+      xyz Angual;
+      xyz Mag;
+} IMU_msg;
+typedef struct
+{
+      double x;
+      double y;
+} location;
 
+typedef struct
+{
+      double fl;
+      double fr;
+      double rl;
+      double rr;
+} wheel_npm;
 
 #endif
