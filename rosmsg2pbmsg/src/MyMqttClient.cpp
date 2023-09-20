@@ -90,7 +90,7 @@ int MyMqttClient::pub(const std::string& topic,const std::string& message,int qo
         auto pubmsg = mqtt::make_message(topic, message);
         pubmsg->set_qos(qos);
         ptr->publish(pubmsg);
-        std::cout << "...OK" << std::endl;
+        std::cout << topic.c_str()<<"...OK" << std::endl;
 
         // lient.publish(TOPIC, PAYLOAD2, strlen(PAYLOAD2)+1);
 }

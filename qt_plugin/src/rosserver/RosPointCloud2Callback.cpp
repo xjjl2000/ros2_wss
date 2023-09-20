@@ -1,5 +1,7 @@
 #include "rosserver/RosCallbackInterface.hpp"
+#include "rosserver/DelayHz.hpp"
 #include "rosmessage/pointcloud2msg.hpp"
+#include "udpserver/UdpSend.hpp"
 #include "pcl_conversions/pcl_conversions.h"
 #include "handleserver/MyPoint.hpp"
 #include "QVector"
@@ -7,6 +9,8 @@
 
 class RosPointCloud2Callback : public RosCallbackInterface<sensor_msgs::msg::LaserScan, sensor_msgs::msg::LaserScan::ConstSharedPtr>
 {
+        RosDelayHz<sensor_msgs::msg::LaserScan> scan_t;
+
 
         void callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr msg) override
         {
@@ -35,28 +39,22 @@ class RosPointCloud2Callback : public RosCallbackInterface<sensor_msgs::msg::Las
                         //std::cout << "point.x :" << p.x << "point.y :" << p.y << "point.z :" << p.z << '\n';
                         v.push_back(p);
                 }
+                double delay = scan_t.msgDelay(msg);
+                QString Delay=QString::number(delay, 'f', 3);
+                double hz=scan_t.msgHz(msg);
+                QString HZ=QString::number(hz, '1', 1);
+                std::cout<<"delay:"<<delay<<std::endl;
 
-                // point_cloud_ptr->width = (int)point_cloud_ptr->points.size();
-                // point_cloud_ptr->height = 1;
+                std::ofstream outfile("laserScanPackagesLost.txt", std::ios::app); // 创建一个名为.txt 的输出文件流
+                outfile << "sec:" << msg->header.stamp.sec << "    nanosec:" << msg->header.stamp.nanosec <<"   delay:"<<delay<<"  hz:"<<hz<< "    id:" << msg->header.frame_id << std::endl;
+
+
                 QByteArray dataByteArray;
                 QDataStream dataByteArrayStream(&dataByteArray, QIODevice::WriteOnly);
                 dataByteArrayStream << v;
                 dataByteArray = qCompress(dataByteArray, -1);
-                UdpMessage udpMessage;
-                udpMessage.topic = QString("point");
-                udpMessage.data = std::move(dataByteArray);
 
-                QByteArray msgByteArray;
-                QDataStream msgByteArrayStream(&msgByteArray, QIODevice::WriteOnly);
-                msgByteArrayStream << udpMessage;
-
-                QUdpSocket udpSocket;
-                udpSocket.bind(QHostAddress::Any); // 绑定本地地址和端口号
-
-                // 发送序列化后的数据
-                int ans = udpSocket.writeDatagram(msgByteArray, QHostAddress("localhost"), 23912); // 将目标 IP 和端口指定为接收端的地址和端口
-                //std::cout << msgByteArray.size() << '\n';
-                std::cout << ans << '\n';
+                UdpSendmsg(dataByteArray, QString("point"),"localhost",23912);
         }
         public:
                 RosPointCloud2Callback(const std::string topic,rclcpp::Node* node):RosCallbackInterface<sensor_msgs::msg::LaserScan, sensor_msgs::msg::LaserScan::ConstSharedPtr>(topic,node){};

@@ -53,10 +53,9 @@ Convert::Convert() : Node("listener"), count_(0)
   pub_callback_ptr_r->setConnectedFunc(std::make_shared<PrintConnectedCallback>());
 
   // 此处需注意  理论上id应当唯一
-  mqtt_image_pub = MyMqttClient("mqtt_pub_2", "192.168.2.107", 1884,
+  mqtt_image_pub = MyMqttClient("mqtt_pub_image", "192.168.2.107", 1884,
                                 pub_conn_opts,
                                 pub_callback_ptr);
-  // mqtt_image_pub.pub("mqttpublish","hello,world",0);
 
   auto imu_pub_callback_ptr = std::make_shared<CompentsCallback>();
   auto imu_pub_callback_ptr_r = imu_pub_callback_ptr.get();
@@ -93,6 +92,10 @@ Convert::Convert() : Node("listener"), count_(0)
   sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(
       "/livox/lidar", 10, std::bind(&Convert::pointcloud2_sub_callback, this, std::placeholders::_1));
   pub_ = create_publisher<std_msgs::msg::ByteMultiArray>("lidar_pb", 10);
+
+  laserScan_sub=create_subscription<sensor_msgs::msg::LaserScan>(
+    "/scan",qos,std::bind(&Convert::laserScanCallback,this,std::placeholders::_1));
+  laserScan_pub=create_publisher<sensor_msgs::msg::LaserScan>("scan/convert",10);
 
   Compressedimage_sub_ = create_subscription<sensor_msgs::msg::CompressedImage>("/rear_camera_nx/camera/image_raw/compressed", 10, std::bind(&Convert::Compressedimage_mqtt_callback, this, std::placeholders::_1));
   // image_sub_=create_subscription<sensor_msgs::msg::Image>("/rear_camera/camera/image_rawww",10,[this, &mqtt_image_b](const sensor_msgs::msg::Image::SharedPtr msg){
@@ -158,6 +161,41 @@ void Convert::pointcloud2_sub_callback(const sensor_msgs::msg::PointCloud2::Cons
 
   // pub_->publish(buff_msg);
 }
+
+void Convert::laserScanCallback(const sensor_msgs::msg::LaserScan::ConstSharedPtr msg){
+  laserscan_count++;
+
+  struct timespec t = {0, 0};
+  clock_gettime(CLOCK_REALTIME, &t);
+  int t2 = t.tv_nsec;
+  int t1 = t.tv_sec;
+
+  sensor_msgs::msg::LaserScan laserScanmsg;
+
+  std::string str1=msg->header.frame_id;
+  std::string str2=std::to_string(laserscan_count);
+  std::string str3=" ";
+  std::string id=str1+""+str3+""+str2;
+
+  laserScanmsg.header.set__frame_id(id);
+  laserScanmsg.header.stamp.nanosec=t2;
+  laserScanmsg.header.stamp.sec=t1;
+  laserScanmsg.set__angle_increment(msg->angle_increment);
+  laserScanmsg.set__angle_max(msg->angle_max);
+  laserScanmsg.set__angle_min(msg->angle_min);
+  laserScanmsg.set__intensities(msg->intensities);
+  laserScanmsg.set__range_max(msg->range_max);
+  laserScanmsg.set__range_min(msg->range_min);
+  laserScanmsg.set__ranges(msg->ranges);
+  laserScanmsg.set__scan_time(msg->scan_time);
+  laserScanmsg.set__time_increment(msg->time_increment);
+
+  laserScan_pub->publish(laserScanmsg);
+
+
+}
+
+
 void Convert::image_b_callback(const sensor_msgs::msg::Image::ConstSharedPtr msg, MyMqttClient &mqtt_image_b)
 {
   struct timespec t = {0, 0};
@@ -268,13 +306,21 @@ void Convert::Compressedimage_b_callback(const sensor_msgs::msg::CompressedImage
 }
 void Convert::Compressedimage_mqtt_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg)
 {
+    image_count++;
+
   struct timespec t = {0, 0};
   clock_gettime(CLOCK_REALTIME, &t);
   int t2 = t.tv_nsec;
   int t1 = t.tv_sec;
 
   sensors_msg::ImageProto msg_pb;
-  msg_pb.set_header_frame_id(msg->header.frame_id);
+
+  std::string str1=msg->header.frame_id;
+  std::string str2=std::to_string(image_count);
+  std::string str3=" ";
+  std::string id=str1+""+str3+""+str2;
+
+  msg_pb.set_header_frame_id(id);
   msg_pb.set_header_stamp_nanosec(t2);
   msg_pb.set_header_stamp_sec(t1);
   msg_pb.set_format(msg->format);
@@ -293,7 +339,7 @@ void Convert::Compressedimage_mqtt_callback(const sensor_msgs::msg::CompressedIm
 
   sensor_msgs::msg::CompressedImage imgc;
   imgc.format = msg->format;
-  imgc.header.frame_id = msg->header.frame_id;
+  imgc.header.frame_id = id;
   imgc.header.stamp.nanosec = t2;
   imgc.header.stamp.sec = t1;
   imgc.data.resize(msg->data.size());

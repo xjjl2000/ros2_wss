@@ -12,7 +12,7 @@ void MainNode::init()
   qos = qos.best_effort();
   qos = qos.keep_last(10);
 
-  RosPointCloud2=std::make_shared< RosPointCloud2Callback>(std::string("/scan"),this);
+  RosPointCloud2=std::make_shared< RosPointCloud2Callback>(std::string("/scan/convert"),this);
   RosPointCloud2->sub(10);
 
   

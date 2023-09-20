@@ -13,6 +13,8 @@
 #include "udpserver/UdpMessage.hpp"
 #include <QPointF>
 #include <QtCore/QVector>
+#include <QMutex>
+
 
 using namespace std::chrono_literals;
 

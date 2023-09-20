@@ -5,6 +5,7 @@
 #include "rcutils/logging.h"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/msg/point_field.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 #include "sensor_msgs/msg/image.hpp"
 #include "sensor_msgs/msg/compressed_image.hpp"
 #include "sensor_msgs/msg/imu.hpp"
@@ -29,9 +30,11 @@ class Convert : public rclcpp::Node
         Convert();
 
    private:
-        int cloud_count=0,image=0;
+        int cloud_count=0,image_count=0,laserscan_count=0;
         using PointField = sensor_msgs::msg::PointField;
         void pointcloud2_sub_callback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr cloud);
+                void laserScanCallback(const sensor_msgs::msg::LaserScan::ConstSharedPtr msg);
+
 
         void image_f_callback(const sensor_msgs::msg::Image::ConstSharedPtr msg);
         void image_b_callback(const sensor_msgs::msg::Image::ConstSharedPtr msg, MyMqttClient& mqtt_image_b);
@@ -50,6 +53,11 @@ class Convert : public rclcpp::Node
         //pointcloud2
         rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub_;
         rclcpp::Publisher<std_msgs::msg::ByteMultiArray>::SharedPtr pub_;
+
+        //laserscan
+        rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserScan_sub;
+        rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laserScan_pub;
+        
         //image-back
         rclcpp::Subscription<sensor_msgs::msg::CompressedImage>::SharedPtr Compressedimage_sub_;
         rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_sub_;

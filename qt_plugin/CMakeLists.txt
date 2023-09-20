@@ -106,6 +106,7 @@ ament_target_dependencies (msgTransit
 target_sources (msgTransit PRIVATE  src/mqttClient/MessageArrivedCallback.cpp
 
                                     src/Udpmessage/UdpMessage.cpp
+                                    src/Udpmessage/UdpSend.cpp
                                     include/handleserver/MyPoint.hpp
 
                                     src/RosMessage/MainNode.cpp
@@ -116,6 +117,8 @@ target_sources (msgTransit PRIVATE  src/mqttClient/MessageArrivedCallback.cpp
                                     src/rosserver/RosPointCloud2Callback.cpp
                                     src/rosserver/RosImageCallback.cpp
                                     include/rosserver/RosCallbackInterface.hpp
+                                    include/rosserver/DelayHz.hpp
+
 )
 
 add_subdirectory(third/sensor_protobuf)

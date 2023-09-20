@@ -1,4 +1,5 @@
 #include "rosserver/RosCallbackInterface.hpp"
+#include "rosserver/DelayHz.hpp"
 #include "rclInclude.hpp"
 
 #include "sensor_msgs/msg/compressed_image.hpp"
@@ -9,9 +10,13 @@
 #include "QImage"
 #include "qpixmap.h"
 
-class RosImageCallback : public RosCallbackInterface<sensor_msgs::msg::CompressedImage, sensor_msgs::msg::CompressedImage::ConstSharedPtr>
+class RosImageCallback : public RosCallbackInterface<sensor_msgs::msg::CompressedImage, sensor_msgs::msg::CompressedImage::ConstSharedPtr>, public RosDelayHz<sensor_msgs::msg::CompressedImage>
 {
         struct timespec lastTime = {0, 0};
+        int messagecount = 0;
+        struct timespec start_time;
+        double delay = 0;
+        RosDelayHz<sensor_msgs::msg::CompressedImage> image_t;
         void callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg) override
         {
                 try
@@ -68,11 +73,33 @@ class RosImageCallback : public RosCallbackInterface<sensor_msgs::msg::Compresse
                         }
                         this->lastTime = image_back_t;
 
-                        int t0 = image_back_t.tv_sec;
-                        int t1 = image_back_t.tv_nsec;
-                        double image_back_delayt = (t0 + t1 * 1e-9) - (msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9);
+                        // int t0 = image_back_t.tv_sec;
+                        // int t1 = image_back_t.tv_nsec;
+                        // double image_back_delayt = (t0 + t1 * 1e-9) - (msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9);
+                        struct timespec timenow = {0, 0};
+                        clock_gettime(CLOCK_REALTIME, &timenow);
+                        if (messagecount == 0)
+                        {
+                                clock_gettime(CLOCK_REALTIME, &start_time);
+                        }
+                        messagecount++;
+
+                        double delayt = (timenow.tv_sec + timenow.tv_nsec * 1e-9) - (msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9);
+                        delay += delayt;
+                        double aver_delayt = delay / messagecount;
+                        std::cout << "\naver_delayt:" << aver_delayt << std::endl;
+
                         // this->ui_->imageBackTime_label->setText(QString::number(image_back_delayt,'f',3));
                 }
+
+                double delay = image_t.msgDelay(msg);
+                QString Delay = QString::number(delay, 'f', 3);
+                double hz = image_t.msgHz(msg);
+                QString HZ = QString::number(hz, '1', 1);
+                std::cout << "delay:" << delay << std::endl;
+
+                std::ofstream outfile("imagePackagesLost.txt", std::ios::app); // 创建一个名为.txt 的输出文件流
+                outfile << "sec:" << msg->header.stamp.sec << "    nanosec:" << msg->header.stamp.nanosec << "   delay:"<<delay<<"  hz:"<<hz<<"    id:" << msg->header.frame_id << std::endl;
         }
 
         QImage convertToQImage(const cv::Mat &image)
@@ -98,5 +125,5 @@ class RosImageCallback : public RosCallbackInterface<sensor_msgs::msg::Compresse
         }
 
 public:
-        RosImageCallback(const std::string topic,rclcpp::Node* node) : RosCallbackInterface<sensor_msgs::msg::CompressedImage, sensor_msgs::msg::CompressedImage::ConstSharedPtr>(topic, node){};
+        RosImageCallback(const std::string topic, rclcpp::Node *node) : RosCallbackInterface<sensor_msgs::msg::CompressedImage, sensor_msgs::msg::CompressedImage::ConstSharedPtr>(topic, node), RosDelayHz<sensor_msgs::msg::CompressedImage>(){};
 };
