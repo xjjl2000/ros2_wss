@@ -15,11 +15,13 @@ void MainNode::init()
   RosPointCloud2=std::make_shared< RosPointCloud2Callback>(std::string("/scan/convert"),this);
   RosPointCloud2->sub(10);
 
+  RosImageFront_ptr=std::make_shared<RosImageFrontCallback>(std::string("/d455_camera_nx/color/image_raw/compressed/convert"),this);
+  RosImageFront_ptr->sub(qos);
   
-  RosImage_ptr=std::make_shared<RosImageCallback>(std::string("/rear_camera/camera/image_raw/compresseddddddd"),this);
-  RosImage_ptr->sub(qos);
+  RosImageBack_ptr=std::make_shared<RosImageBackCallback>(std::string("/rear_camera/camera/image_raw/compressed/convert"),this);
+  RosImageBack_ptr->sub(qos);
 
-  RosImu_ptr=std::make_shared<RosImuCallback>(std::string("/imu"),this);
+  RosImu_ptr=std::make_shared<RosImuCallback>(std::string("/imu/convert"),this);
   RosImu_ptr->sub(qos);
 
   RosImuMagneticField_ptr=std::make_shared<RosImuMagneticFieldCallback>(std::string("/imu/mag"),this);

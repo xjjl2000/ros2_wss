@@ -1,6 +1,7 @@
 #include "car_init.hpp"
 #include "rclInclude.hpp"
 #include "rosserver/RosCallbackInterface.hpp"
+#include "rosserver/DelayHz.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 

@@ -8,6 +8,10 @@
 #include <QObject>
 #include <QDataStream>
 
-void UdpSendmsg(QByteArray &dataByteArray, QString udpTopic,const QString &address,quint16 port);
+namespace UdpUtils
+{
+        void UdpSendmsg(QByteArray &dataByteArray, QString udpTopic, const QString &address, quint16 port);
+
+}
 
 #endif

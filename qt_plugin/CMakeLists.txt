@@ -104,10 +104,12 @@ ament_target_dependencies (msgTransit
 
 
 target_sources (msgTransit PRIVATE  src/mqttClient/MessageArrivedCallback.cpp
-
+                                    src/mqttClient/MqttMsgSub.cpp
                                     src/Udpmessage/UdpMessage.cpp
                                     src/Udpmessage/UdpSend.cpp
                                     include/handleserver/MyPoint.hpp
+
+                                    src/handleserver/utils.cpp
 
                                     src/RosMessage/MainNode.cpp
                                     src/rosserver/RosCmdVelCallback.cpp

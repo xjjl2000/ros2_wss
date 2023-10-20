@@ -9,6 +9,7 @@
 
 #include <QGuiApplication>
 #include "rosmessage/MainNode.hpp"
+#include "mqttClient/MqttMsgSub.hpp"
 #include "QApplication"
 
 int main(int argc, char *argv[])
@@ -23,7 +24,10 @@ int main(int argc, char *argv[])
   // //https://zhuanlan.zhihu.com/p/355083258
 
   auto main_node = std::make_shared<MainNode>("mainnode");
-  main_node->init();
+  // main_node->init();
+
+  MqttSubscriber mqttsubscriber;
+  mqttsubscriber.init();
 
   while (rclcpp::ok())
   {

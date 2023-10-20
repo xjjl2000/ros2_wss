@@ -44,9 +44,11 @@ class RosPointCloud2Callback : public RosCallbackInterface<sensor_msgs::msg::Las
                 double hz=scan_t.msgHz(msg);
                 QString HZ=QString::number(hz, '1', 1);
                 std::cout<<"delay:"<<delay<<std::endl;
+                std::cout<<"there is a pointcloud.txt start"<<std::endl;
 
                 std::ofstream outfile("laserScanPackagesLost.txt", std::ios::app); // 创建一个名为.txt 的输出文件流
                 outfile << "sec:" << msg->header.stamp.sec << "    nanosec:" << msg->header.stamp.nanosec <<"   delay:"<<delay<<"  hz:"<<hz<< "    id:" << msg->header.frame_id << std::endl;
+                std::cout<<"there is a pointcloud.txt end"<<std::endl;
 
 
                 QByteArray dataByteArray;
@@ -54,7 +56,7 @@ class RosPointCloud2Callback : public RosCallbackInterface<sensor_msgs::msg::Las
                 dataByteArrayStream << v;
                 dataByteArray = qCompress(dataByteArray, -1);
 
-                UdpSendmsg(dataByteArray, QString("point"),"localhost",23912);
+                UdpUtils::UdpSendmsg(dataByteArray, QString("point"),"localhost",23912);
         }
         public:
                 RosPointCloud2Callback(const std::string topic,rclcpp::Node* node):RosCallbackInterface<sensor_msgs::msg::LaserScan, sensor_msgs::msg::LaserScan::ConstSharedPtr>(topic,node){};

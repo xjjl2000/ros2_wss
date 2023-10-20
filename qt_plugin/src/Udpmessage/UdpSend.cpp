@@ -1,6 +1,6 @@
 #include "udpserver/UdpSend.hpp"
 
-void UdpSendmsg(QByteArray &dataByteArray, QString udpTopic, const QString &address, quint16 port)
+void UdpUtils::UdpSendmsg(QByteArray &dataByteArray, QString udpTopic, const QString &address, quint16 port)
 {
         UdpMessage udpMessage;
         udpMessage.topic = udpTopic;

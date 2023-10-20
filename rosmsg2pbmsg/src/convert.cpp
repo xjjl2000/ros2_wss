@@ -3,6 +3,7 @@
 #include "sensor_msgs/msg/image.hpp"
 #include "geometry_msgs.pb.h"
 #include "Imu_msgs.pb.h"
+#include "laserscan.pb.h"
 #include "callback/ActionCallback.hpp"
 #include "callback/ConnectCallback.hpp"
 #include "callback/MessageArrivedCallback.hpp"
@@ -93,25 +94,20 @@ Convert::Convert() : Node("listener"), count_(0)
       "/livox/lidar", 10, std::bind(&Convert::pointcloud2_sub_callback, this, std::placeholders::_1));
   pub_ = create_publisher<std_msgs::msg::ByteMultiArray>("lidar_pb", 10);
 
-  laserScan_sub=create_subscription<sensor_msgs::msg::LaserScan>(
-    "/scan",qos,std::bind(&Convert::laserScanCallback,this,std::placeholders::_1));
-  laserScan_pub=create_publisher<sensor_msgs::msg::LaserScan>("scan/convert",10);
+  laserScan_sub = create_subscription<sensor_msgs::msg::LaserScan>(
+      "/scan", qos, std::bind(&Convert::laserScanCallback, this, std::placeholders::_1));
+  laserScan_pub = create_publisher<sensor_msgs::msg::LaserScan>("scan/convert", 10);
 
-  Compressedimage_sub_ = create_subscription<sensor_msgs::msg::CompressedImage>("/rear_camera_nx/camera/image_raw/compressed", 10, std::bind(&Convert::Compressedimage_mqtt_callback, this, std::placeholders::_1));
-  // image_sub_=create_subscription<sensor_msgs::msg::Image>("/rear_camera/camera/image_rawww",10,[this, &mqtt_image_b](const sensor_msgs::msg::Image::SharedPtr msg){
-  //   image_b_callback(msg,mqtt_image_b);
-  // });
+  CompressedImageBack_sub_ = create_subscription<sensor_msgs::msg::CompressedImage>("/rear_camera_nx/camera/image_raw/compressed", 10, std::bind(&Convert::CompressedImageBack_callback, this, std::placeholders::_1));
+  CompressedImageBack_pub_ = create_publisher<sensor_msgs::msg::CompressedImage>("/rear_camera/camera/image_raw/compressed/convert", rclcpp::QoS(rclcpp::KeepLast(10)).best_effort());
 
-  Compressedimage_pub_ = create_publisher<sensor_msgs::msg::CompressedImage>("/rear_camera/camera/image_raw/compressed_A", rclcpp::QoS(rclcpp::KeepLast(10)).best_effort());
-
-  Compressedimage_f_sub_ = create_subscription<sensor_msgs::msg::CompressedImage>("/d455_camera/color/image_raw/compresseddd", qos, std::bind(&Convert::Compressedimage_f_callback, this, std::placeholders::_1));
+  CompressedImageFront_pub_ = create_publisher<sensor_msgs::msg::CompressedImage>("/d455_camera_nx/color/image_raw/compressed/convert", rclcpp::QoS(rclcpp::KeepLast(10)).best_effort());
+  CompressedImageFront_sub_ = create_subscription<sensor_msgs::msg::CompressedImage>("/d455_camera_nx/color/image_raw/compressed", qos, std::bind(&Convert::CompressedImageFront_callback, this, std::placeholders::_1));
   // image_f_sub_=create_subscription<sensor_msgs::msg::Image>("/d455_camera/color/image_rawww",10,std::bind(&Convert::image_f_callback,this,std::placeholders::_1));
-
-  Compressedimage_f_pub_ = create_publisher<sensor_msgs::msg::CompressedImage>("/rear_camera/camera/image_raw/compresseddddddd", rclcpp::QoS(rclcpp::KeepLast(10)).best_effort());
 
   // imu设置qos
   imu_sub_ = create_subscription<sensor_msgs::msg::Imu>("/imu", qos, std::bind(&Convert::imu_callback, this, std::placeholders::_1));
-  imu_pub_ = create_publisher<sensor_msgs::msg::Imu>("imu/data_A", 10);
+  imu_pub_ = create_publisher<sensor_msgs::msg::Imu>("imu/convert", qos);
 }
 
 void Convert::pointcloud2_sub_callback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr cloud)
@@ -162,7 +158,8 @@ void Convert::pointcloud2_sub_callback(const sensor_msgs::msg::PointCloud2::Cons
   // pub_->publish(buff_msg);
 }
 
-void Convert::laserScanCallback(const sensor_msgs::msg::LaserScan::ConstSharedPtr msg){
+void Convert::laserScanCallback(const sensor_msgs::msg::LaserScan::ConstSharedPtr msg)
+{
   laserscan_count++;
 
   struct timespec t = {0, 0};
@@ -172,14 +169,14 @@ void Convert::laserScanCallback(const sensor_msgs::msg::LaserScan::ConstSharedPt
 
   sensor_msgs::msg::LaserScan laserScanmsg;
 
-  std::string str1=msg->header.frame_id;
-  std::string str2=std::to_string(laserscan_count);
-  std::string str3=" ";
-  std::string id=str1+""+str3+""+str2;
+  std::string str1 = msg->header.frame_id;
+  std::string str2 = std::to_string(laserscan_count);
+  std::string str3 = " ";
+  std::string id = str1 + "" + str3 + "" + str2;
 
   laserScanmsg.header.set__frame_id(id);
-  laserScanmsg.header.stamp.nanosec=t2;
-  laserScanmsg.header.stamp.sec=t1;
+  laserScanmsg.header.stamp.nanosec = t2;
+  laserScanmsg.header.stamp.sec = t1;
   laserScanmsg.set__angle_increment(msg->angle_increment);
   laserScanmsg.set__angle_max(msg->angle_max);
   laserScanmsg.set__angle_min(msg->angle_min);
@@ -192,9 +189,20 @@ void Convert::laserScanCallback(const sensor_msgs::msg::LaserScan::ConstSharedPt
 
   laserScan_pub->publish(laserScanmsg);
 
-
+  laserscan::laserscanpb lasermsg;
+  lasermsg.add_intensities(msg->angle_increment);
+  lasermsg.add_ranges(*msg->ranges.data());
+  lasermsg.set_angle_max(msg->angle_max);
+  lasermsg.set_angle_min(msg->angle_min);
+  lasermsg.set_angle_increment(msg->angle_increment);
+  lasermsg.set_scan_time(msg->scan_time);
+  lasermsg.set_time_increment(msg->time_increment);
+  lasermsg.set_range_max(msg->range_max);
+  lasermsg.set_range_min(msg->range_min);
+  lasermsg.mutable_header()->set_frame_id(msg->header.frame_id);
+  lasermsg.mutable_header()->set_header_stamp_nanosec(msg->header.stamp.nanosec);
+  lasermsg.mutable_header()->set_header_stamp_sec(msg->header.stamp.sec);
 }
-
 
 void Convert::image_b_callback(const sensor_msgs::msg::Image::ConstSharedPtr msg, MyMqttClient &mqtt_image_b)
 {
@@ -271,42 +279,53 @@ void Convert::image_f_callback(const sensor_msgs::msg::Image::ConstSharedPtr msg
   image_f_pub_->publish(buff_msg);
 }
 
-void Convert::Compressedimage_f_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg)
+void Convert::CompressedImageFront_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg)
 {
+  imageFront_count++;
+  std::string str1 = msg->header.frame_id;
+  std::string str2 = std::to_string(imageFront_count);
+  std::string str3 = " ";
+  std::string id = str1 + "" + str3 + "" + str2;
+
   struct timespec t = {0, 0};
   clock_gettime(CLOCK_REALTIME, &t);
   int t2 = t.tv_nsec;
   int t1 = t.tv_sec;
 
   sensor_msgs::msg::CompressedImage Compressedimage_msg;
-  Compressedimage_msg.header.frame_id = msg->header.frame_id;
+  Compressedimage_msg.header.frame_id = id;
   Compressedimage_msg.header.stamp.nanosec = t2;
   Compressedimage_msg.header.stamp.sec = t1;
   Compressedimage_msg.set__format(msg->format);
   Compressedimage_msg.data.resize(msg->data.size());
   memcpy(Compressedimage_msg.data.data(), msg->data.data(), msg->data.size());
 
-  // Compressedimage_f_pub_->publish(Compressedimage_msg);
+  CompressedImageFront_pub_->publish(Compressedimage_msg);
 }
-void Convert::Compressedimage_b_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg)
+void Convert::CompressedImageBack_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg)
 {
+  imageBack_count++;
+  std::string str1 = msg->header.frame_id;
+  std::string str2 = std::to_string(imageFront_count);
+  std::string str3 = " ";
+  std::string id = str1 + "" + str3 + "" + str2;
   struct timespec t = {0, 0};
   clock_gettime(CLOCK_REALTIME, &t);
   int t2 = t.tv_nsec;
   int t1 = t.tv_sec;
 
   sensor_msgs::msg::CompressedImage Compressedimage_msg;
-  Compressedimage_msg.header.frame_id = msg->header.frame_id;
+  Compressedimage_msg.header.frame_id = id;
   Compressedimage_msg.header.stamp.nanosec = t2;
   Compressedimage_msg.header.stamp.sec = t1;
   Compressedimage_msg.set__format(msg->format);
   Compressedimage_msg.data.resize(msg->data.size());
   memcpy(Compressedimage_msg.data.data(), msg->data.data(), msg->data.size());
-  // Compressedimage_pub_->publish(Compressedimage_msg);
+  CompressedImageBack_pub_->publish(Compressedimage_msg);
 }
-void Convert::Compressedimage_mqtt_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg)
+void Convert::CompressedImage_mqtt_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg)
 {
-    image_count++;
+  imageFront_count++;
 
   struct timespec t = {0, 0};
   clock_gettime(CLOCK_REALTIME, &t);
@@ -315,10 +334,10 @@ void Convert::Compressedimage_mqtt_callback(const sensor_msgs::msg::CompressedIm
 
   sensors_msg::ImageProto msg_pb;
 
-  std::string str1=msg->header.frame_id;
-  std::string str2=std::to_string(image_count);
-  std::string str3=" ";
-  std::string id=str1+""+str3+""+str2;
+  std::string str1 = msg->header.frame_id;
+  std::string str2 = std::to_string(imageFront_count);
+  std::string str3 = " ";
+  std::string id = str1 + "" + str3 + "" + str2;
 
   msg_pb.set_header_frame_id(id);
   msg_pb.set_header_stamp_nanosec(t2);
@@ -346,11 +365,16 @@ void Convert::Compressedimage_mqtt_callback(const sensor_msgs::msg::CompressedIm
   memcpy(imgc.data.data(), msg->data.data(), msg->data.size());
 
   mqtt_image_pub.pub("mqtt_image", ser_msg, 0);
-  Compressedimage_f_pub_->publish(imgc);
+  CompressedImageBack_pub_->publish(imgc);
 }
 
 void Convert::imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
+  imucount++;
+  std::string str1 = msg->header.frame_id;
+  std::string str2 = std::to_string(imucount);
+  std::string str3 = " ";
+  std::string id = str1 + "" + str3 + "" + str2;
   struct timespec t = {0, 0};
   clock_gettime(CLOCK_REALTIME, &t);
   int t2 = t.tv_nsec;
@@ -379,7 +403,18 @@ void Convert::imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 
   mqtt_imu_pub.pub("mqtt_imu", ser_msg, 0);
 
-  // imu_pub_->publish(*msg);
+  sensor_msgs::msg::Imu RosImu;
+  RosImu.set__angular_velocity(msg->angular_velocity);
+  RosImu.set__angular_velocity_covariance(msg->angular_velocity_covariance);
+  RosImu.header.frame_id=id;
+  RosImu.header.stamp.sec=t1;
+  RosImu.header.stamp.nanosec=t2;
+  RosImu.set__linear_acceleration(msg->linear_acceleration);
+  RosImu.set__linear_acceleration_covariance(msg->linear_acceleration_covariance);
+  RosImu.set__orientation(msg->orientation);
+  RosImu.set__orientation_covariance(msg->orientation_covariance);
+
+  imu_pub_->publish(RosImu);
 }
 
 void Convert::compress_data(const std::string &input, std::string &output)

@@ -34,17 +34,17 @@ class RosImuCallback : public RosCallbackInterface<sensor_msgs::msg::Imu, sensor
                 QByteArray dataByteArray_Qroll;
                 QDataStream dataByteArrayStream_Qroll(&dataByteArray_Qroll, QIODevice::WriteOnly);
                 dataByteArrayStream_Qroll << Qroll;
-                UdpSendmsg(dataByteArray_Qroll, QString("Qroll"),"localhost",23931);
+                UdpUtils::UdpSendmsg(dataByteArray_Qroll, QString("Qroll"),"localhost",23931);
 
                 QByteArray dataByteArray_Qpitch;
                 QDataStream dataByteArrayStream_Qpitch(&dataByteArray_Qpitch, QIODevice::WriteOnly);
                 dataByteArrayStream_Qpitch << Qpitch;
-                UdpSendmsg(dataByteArray_Qpitch, QString("Qpitch"),"localhost",23932);
+                UdpUtils::UdpSendmsg(dataByteArray_Qpitch, QString("Qpitch"),"localhost",23932);
 
                 QByteArray dataByteArray_Qyaw;
                 QDataStream dataByteArrayStream_Qyaw(&dataByteArray_Qyaw, QIODevice::WriteOnly);
                 dataByteArrayStream_Qyaw << Qyaw;
-                UdpSendmsg(dataByteArray_Qyaw, QString("Qyaw"),"localhost",23933);
+                UdpUtils::UdpSendmsg(dataByteArray_Qyaw, QString("Qyaw"),"localhost",23933);
                 // ui_->roll->setText(QString::number(roll,'f',2));
                 // ui_->pitch->setText(QString::number(pitch,'f',2));
                 // ui_->yaw->setText(QString::number(yaw,'f',2));
@@ -76,6 +76,7 @@ class RosImuCallback : public RosCallbackInterface<sensor_msgs::msg::Imu, sensor
                         int t1 = timeImu.tv_nsec;
                         float imu_delayt = (t0 + t1 * 1e-9) - (msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9);
                         QString delayt = QString::number(imu_delayt, 'f', 3);
+                        std::cout<<"imu_delayt:"<<imu_delayt<<std::endl;
                         //     this->ui_->imuTime_label->setText(QString::number(imu_delayt,'f',3));
                 }
 

@@ -88,6 +88,10 @@ target_sources (listener PRIVATE
                         src/callback/ActionCallback.cpp
                         src/callback/CallbackFunctionInterface.cpp
                         src/MyMqttClient.cpp
+                        src/Rosmsg/cloudCallback.cpp
+                        src/Rosmsg/imgCallback.cpp
+                        src/Rosmsg/imuCallback.cpp
+
                         )
 # target_sources (listener PRIVATE src/mqtt_sub.cpp)
 

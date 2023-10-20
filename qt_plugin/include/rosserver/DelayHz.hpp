@@ -88,6 +88,46 @@ public:
                 }
                 throw std::runtime_error("no messages from func msgHz");
         }
+
+        double msgDelay(MessageT* msg)
+        {
+                struct timespec timenow = {0, 0};
+                clock_gettime(CLOCK_REALTIME, &timenow);
+                if (messagecount == 0)
+                {
+                        clock_gettime(CLOCK_REALTIME, &start_time);
+                }
+                qMtuxcount.lock();
+                messagecount++;
+                qMtuxcount.unlock();
+                std::cout << msg->header.frame_id << " delaycount:" << messagecount << std::endl;
+                std::cout<<"timenow  sec"<<timenow.tv_nsec<<"   nsec"<<timenow.tv_sec<<std::endl;
+                double delayt = (timenow.tv_sec + timenow.tv_nsec * 1e-9) - (msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9);
+                qMtuxdelay.lock();
+                delay += delayt;
+                qMtuxdelay.unlock();
+                double aver_delayt = delay / messagecount;
+                std::cout<<"delay"<<delay<<std::endl;
+
+                return aver_delayt;
+        }
+
+        double msgHz(MessageT* msg)
+        {
+                if (msg->header.stamp.nanosec)
+                {
+                        clock_gettime(CLOCK_REALTIME, &t);
+                        qMtuxUpdate.lock();
+                        update(t);
+                        qMtuxUpdate.unlock();
+                        struct timespec firsttime = getFirstValue();
+                        struct timespec lasttime = getLastValue();
+                        double hz = window.size() / ((lasttime.tv_sec + lasttime.tv_nsec * 1e-9) - (firsttime.tv_sec + firsttime.tv_nsec * 1e-9));
+                        return hz;
+                }
+                throw std::runtime_error("no messages from func msgHz");
+        }
+
 };
 
 #endif

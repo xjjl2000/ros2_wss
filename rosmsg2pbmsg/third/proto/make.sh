@@ -1,1 +1,1 @@
-protoc -I=./ --cpp_out=./ Imu_msgs.proto
+protoc -I=./ --cpp_out=./ laserscan.proto

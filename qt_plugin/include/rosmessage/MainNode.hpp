@@ -21,7 +21,8 @@ class MainNode : public rclcpp::Node
 
         private:
                 std::shared_ptr<RosPointCloud2Callback> RosPointCloud2;
-                std::shared_ptr<RosImageCallback> RosImage_ptr;
+                std::shared_ptr<RosImageFrontCallback> RosImageFront_ptr;
+                std::shared_ptr<RosImageBackCallback> RosImageBack_ptr;
                 std::shared_ptr<RosImuCallback> RosImu_ptr;
                 std::shared_ptr<RosImuMagneticFieldCallback> RosImuMagneticField_ptr;
                 std::shared_ptr<RosPoseCallback> RosPose_ptr;

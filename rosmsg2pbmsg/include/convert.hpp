@@ -30,7 +30,7 @@ class Convert : public rclcpp::Node
         Convert();
 
    private:
-        int cloud_count=0,image_count=0,laserscan_count=0;
+        int cloud_count=0,imageFront_count=0,imageBack_count=0,laserscan_count=0,imucount=0;
         using PointField = sensor_msgs::msg::PointField;
         void pointcloud2_sub_callback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr cloud);
                 void laserScanCallback(const sensor_msgs::msg::LaserScan::ConstSharedPtr msg);
@@ -39,9 +39,9 @@ class Convert : public rclcpp::Node
         void image_f_callback(const sensor_msgs::msg::Image::ConstSharedPtr msg);
         void image_b_callback(const sensor_msgs::msg::Image::ConstSharedPtr msg, MyMqttClient& mqtt_image_b);
 
-        void Compressedimage_f_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg);
-        void Compressedimage_b_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg);
-        void Compressedimage_mqtt_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg);
+        void CompressedImageFront_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg);
+        void CompressedImageBack_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg);
+        void CompressedImage_mqtt_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg);
 
 
         void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg);
@@ -59,17 +59,17 @@ class Convert : public rclcpp::Node
         rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laserScan_pub;
         
         //image-back
-        rclcpp::Subscription<sensor_msgs::msg::CompressedImage>::SharedPtr Compressedimage_sub_;
+        rclcpp::Subscription<sensor_msgs::msg::CompressedImage>::SharedPtr CompressedImageBack_sub_;
         rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_sub_;
 
         rclcpp::Publisher<std_msgs::msg::ByteMultiArray>::SharedPtr image_pub_;
-        rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr Compressedimage_pub_;
+        rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr CompressedImageBack_pub_;
 
         //image-front
-        rclcpp::Subscription<sensor_msgs::msg::CompressedImage>::SharedPtr Compressedimage_f_sub_;
+        rclcpp::Subscription<sensor_msgs::msg::CompressedImage>::SharedPtr CompressedImageFront_sub_;
         rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_f_sub_;
 
-        rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr Compressedimage_f_pub_;
+        rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr CompressedImageFront_pub_;
         rclcpp::Publisher<std_msgs::msg::ByteMultiArray>::SharedPtr image_f_pub_;
         //imu
         rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub_;

@@ -14,12 +14,9 @@ class QlabelShowMessageArrivedCallback:public CallbackFunctionInterfacePlus<mqtt
 
 public:
   virtual void func(mqtt::const_message_ptr) ;
-  QlabelShowMessageArrivedCallback(QLabel *label_=nullptr,QLabel *label1_=nullptr,QLabel *label2_=nullptr);
+  QlabelShowMessageArrivedCallback();
 
 private:
-  QLabel *label=nullptr;
-  QLabel *label1=nullptr;
-  QLabel *label2=nullptr;
   QMutex qMutex;
 
   struct timespec lastTime = {0, 0};
@@ -29,10 +26,12 @@ private:
     }stamp_t;
   stamp_t image_Bt_b,cloud_t;
 
-  void dealCmdvelMessages(mqtt::const_message_ptr,QLabel *label,QLabel *label1);
-  void dealImageMessages(mqtt::const_message_ptr,QLabel *label,QLabel *label1,QLabel *label2);
-  void dealCloudMessages(mqtt::const_message_ptr,QLabel *label,QLabel *label1);
-  void dealImuMessages(mqtt::const_message_ptr,QLabel *label,QLabel *label1,QLabel *label2);
+  void dealCmdvelMessages(mqtt::const_message_ptr);
+  void dealFrontImageMessages(mqtt::const_message_ptr);
+  void dealRearImageMessages(mqtt::const_message_ptr);
+  void dealLaserScanMessages(mqtt::const_message_ptr);
+  void dealCloudMessages(mqtt::const_message_ptr);
+  void dealImuMessages(mqtt::const_message_ptr);
   QImage convertToQImage(const cv::Mat& image);
 
   // signals:
