@@ -1,4 +1,6 @@
 #include "rosserver/RosCallbackInterface.hpp"
+#include "rosserver/DelayHz.hpp"
+#include "udpserver/UdpSend.hpp"
 #include "rclInclude.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 #include "sensor_msgs/msg/magnetic_field.hpp"
@@ -7,6 +9,8 @@
 
 class RosImuCallback : public RosCallbackInterface<sensor_msgs::msg::Imu, sensor_msgs::msg::Imu::ConstSharedPtr>
 {
+        RosDelayHz<sensor_msgs::msg::Imu> imuDelayHz;
+
         struct timespec lastTime = {0, 0};
         IMU_msg imu_A;
         void callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg) override
@@ -26,6 +30,21 @@ class RosImuCallback : public RosCallbackInterface<sensor_msgs::msg::Imu, sensor
                 QString Qroll = QString::number(roll, 'f', 2);
                 QString Qpitch = QString::number(pitch, 'f', 2);
                 QString Qyaw = QString::number(yaw, 'f', 2);
+
+                QByteArray dataByteArray_Qroll;
+                QDataStream dataByteArrayStream_Qroll(&dataByteArray_Qroll, QIODevice::WriteOnly);
+                dataByteArrayStream_Qroll << Qroll;
+                UdpSendmsg(dataByteArray_Qroll, QString("Qroll"),"localhost",23931);
+
+                QByteArray dataByteArray_Qpitch;
+                QDataStream dataByteArrayStream_Qpitch(&dataByteArray_Qpitch, QIODevice::WriteOnly);
+                dataByteArrayStream_Qpitch << Qpitch;
+                UdpSendmsg(dataByteArray_Qpitch, QString("Qpitch"),"localhost",23932);
+
+                QByteArray dataByteArray_Qyaw;
+                QDataStream dataByteArrayStream_Qyaw(&dataByteArray_Qyaw, QIODevice::WriteOnly);
+                dataByteArrayStream_Qyaw << Qyaw;
+                UdpSendmsg(dataByteArray_Qyaw, QString("Qyaw"),"localhost",23933);
                 // ui_->roll->setText(QString::number(roll,'f',2));
                 // ui_->pitch->setText(QString::number(pitch,'f',2));
                 // ui_->yaw->setText(QString::number(yaw,'f',2));
@@ -59,7 +78,20 @@ class RosImuCallback : public RosCallbackInterface<sensor_msgs::msg::Imu, sensor
                         QString delayt = QString::number(imu_delayt, 'f', 3);
                         //     this->ui_->imuTime_label->setText(QString::number(imu_delayt,'f',3));
                 }
+
+                
+
+                double delay = imuDelayHz.msgDelay(msg);
+                QString Delay = QString::number(delay, 'f', 3);
+                double hz = imuDelayHz.msgHz(msg);
+                QString HZ = QString::number(hz, '1', 1);
+                std::cout << "delay:" << delay << std::endl;
+
+                std::ofstream outfile("imuPackagesLost.txt", std::ios::app); // 创建一个名为.txt 的输出文件流
+                outfile << "sec:" << msg->header.stamp.sec << "    nanosec:" << msg->header.stamp.nanosec << "   delay:"<<delay<<"  hz:"<<hz<<"    id:" << msg->header.frame_id << std::endl;
         }
+
+        
 
         public:
         RosImuCallback(const std::string topic,rclcpp::Node* node) : RosCallbackInterface<sensor_msgs::msg::Imu, sensor_msgs::msg::Imu::ConstSharedPtr>(topic, node){};
@@ -67,6 +99,8 @@ class RosImuCallback : public RosCallbackInterface<sensor_msgs::msg::Imu, sensor
 
 class RosImuMagneticFieldCallback : public RosCallbackInterface<sensor_msgs::msg::MagneticField, sensor_msgs::msg::MagneticField::ConstSharedPtr>
 {
+        // RosDelayHz<sensor_msgs::msg::MagneticField> imuMagDelayHz;
+
         struct timespec lastTime = {0, 0};
         IMU_msg imu_A;
         void callback(const sensor_msgs::msg::MagneticField::ConstSharedPtr msg) override
