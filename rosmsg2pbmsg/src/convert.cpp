@@ -31,18 +31,19 @@ Convert::Convert() : Node("listener"), count_(0)
   sub_callback_ptr_r->setConnectionLostFunc(std::make_shared<ReConnectConnectionLostCallback>(actionCallbackPtr));
   // sub_callback_ptr_r->setMessageArrivedFunc(std::make_shared<QlabelShowMessageArrivedCallback>(nullptr));
 
-  mqtt_image_sub = MyMqttClient("mqttpublish_img_sub", "192.168.2.107", 1884,
+  mqtt_image_sub = MyMqttClient("mqttpublish_img_sub", "192.168.31.107", 1884,
                                 sub_conn_opts,
                                 sub_callback_ptr,
                                 actionCallbackPtr);
   // mqtt_image_sub.sub("mqtt_image",0);
 
-  // mqtt_cmdvel_sub=MyMqttClient("cmd_mqtt","192.168.2.107",1884,
+  // mqtt_cmdvel_sub=MyMqttClient("cmd_mqtt","192.168.31.107",1884,
   //                           sub_conn_opts,
   //                           sub_callback_ptr,
   //                           actionCallbackPtr);
   // mqtt_cmdvel_sub.sub("mqtt_cmd_vel",0);
 
+//imgback
   auto pub_conn_opts = mqtt::connect_options_builder()
                            .clean_session()
                            .will(mqtt::message("mqttpublish", "Last will and testament.", 0))
@@ -53,41 +54,62 @@ Convert::Convert() : Node("listener"), count_(0)
   pub_callback_ptr_r->setDeliveryCompleteFunc(std::make_shared<PrintDeliveryCompleteCallback>());
   pub_callback_ptr_r->setConnectedFunc(std::make_shared<PrintConnectedCallback>());
 
-  // 此处需注意  理论上id应当唯一
-  mqtt_image_pub = MyMqttClient("mqtt_pub_image", "192.168.2.107", 1884,
+  mqtt_imageback_pub = MyMqttClient("mqtt_pub_imageback", "192.168.31.107", 1884,
                                 pub_conn_opts,
                                 pub_callback_ptr);
 
+//imgfront
+  auto imgfront_pub_callback_ptr = std::make_shared<CompentsCallback>();
+  auto imgfront_pub_callback_ptr_r = imgfront_pub_callback_ptr.get();
+  imgfront_pub_callback_ptr_r->setConnectionLostFunc(std::make_shared<PrintConnectionLostCallback>());
+  imgfront_pub_callback_ptr_r->setDeliveryCompleteFunc(std::make_shared<PrintDeliveryCompleteCallback>());
+  imgfront_pub_callback_ptr_r->setConnectedFunc(std::make_shared<PrintConnectedCallback>());
+
+  mqtt_imagefront_pub = MyMqttClient("mqtt_pub_imagefront", "192.168.31.107", 1884,
+                                pub_conn_opts,
+                                imgfront_pub_callback_ptr);
+
+//imu
   auto imu_pub_callback_ptr = std::make_shared<CompentsCallback>();
   auto imu_pub_callback_ptr_r = imu_pub_callback_ptr.get();
   imu_pub_callback_ptr_r->setConnectionLostFunc(std::make_shared<PrintConnectionLostCallback>());
   imu_pub_callback_ptr_r->setDeliveryCompleteFunc(std::make_shared<PrintDeliveryCompleteCallback>());
   imu_pub_callback_ptr_r->setConnectedFunc(std::make_shared<PrintConnectedCallback>());
 
-  // 此处需注意  理论上id应当唯一
-  mqtt_imu_pub = MyMqttClient("mqtt_pub_imu", "192.168.2.107", 1884,
+  mqtt_imu_pub = MyMqttClient("mqtt_pub_imu", "192.168.31.107", 1884,
                               pub_conn_opts,
                               imu_pub_callback_ptr);
 
+//cloud
   auto cloud_pub_callback_ptr = std::make_shared<CompentsCallback>();
   auto cloud_pub_callback_ptr_r = cloud_pub_callback_ptr.get();
   cloud_pub_callback_ptr_r->setConnectionLostFunc(std::make_shared<PrintConnectionLostCallback>());
   cloud_pub_callback_ptr_r->setDeliveryCompleteFunc(std::make_shared<PrintDeliveryCompleteCallback>());
   cloud_pub_callback_ptr_r->setConnectedFunc(std::make_shared<PrintConnectedCallback>());
 
-  // 此处需注意  理论上id应当唯一
-  mqtt_cloud_pub = MyMqttClient("mqtt_pub_cloud", "192.168.2.107", 1884,
+  mqtt_cloud_pub = MyMqttClient("mqtt_pub_cloud", "192.168.31.107", 1884,
                                 pub_conn_opts,
                                 cloud_pub_callback_ptr);
 
-  // Mqtt_pub mqtt_image_b("192.168.2.107",1884);
+//laserscan
+  auto laserscan_pub_callback_ptr = std::make_shared<CompentsCallback>();
+  auto laserscan_pub_callback_ptr_r = laserscan_pub_callback_ptr.get();
+  laserscan_pub_callback_ptr_r->setConnectionLostFunc(std::make_shared<PrintConnectionLostCallback>());
+  laserscan_pub_callback_ptr_r->setDeliveryCompleteFunc(std::make_shared<PrintDeliveryCompleteCallback>());
+  laserscan_pub_callback_ptr_r->setConnectedFunc(std::make_shared<PrintConnectedCallback>());
+
+  mqtt_laserscan_pub = MyMqttClient("mqtt_pub_laserscan", "192.168.31.107", 1884,
+                                pub_conn_opts,
+                                laserscan_pub_callback_ptr);
+
+  // Mqtt_pub mqtt_image_b("192.168.31.107",1884);
   // mqtt_image_b.init();
   // mqtt_image_b.pub_message("mqttpublish","6666");
 
   // std::string cmdmsg = mqtt_imsub.sub("cmd_vel");
   //  mqtt_imsub.init();
 
-  // Mqtt_sub cmd_sub("mqttpublish_cmd","192.168.2.107", 1884,sub_conn_opts);
+  // Mqtt_sub cmd_sub("mqttpublish_cmd","192.168.31.107", 1884,sub_conn_opts);
   // cmd_sub.sub("mqtt_cmd_vel",0);
 
   sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(
@@ -187,7 +209,7 @@ void Convert::laserScanCallback(const sensor_msgs::msg::LaserScan::ConstSharedPt
   laserScanmsg.set__scan_time(msg->scan_time);
   laserScanmsg.set__time_increment(msg->time_increment);
 
-  laserScan_pub->publish(laserScanmsg);
+  // laserScan_pub->publish(laserScanmsg);
 
   laserscan::laserscanpb lasermsg;
   lasermsg.add_intensities(msg->angle_increment);
@@ -202,6 +224,9 @@ void Convert::laserScanCallback(const sensor_msgs::msg::LaserScan::ConstSharedPt
   lasermsg.mutable_header()->set_frame_id(msg->header.frame_id);
   lasermsg.mutable_header()->set_header_stamp_nanosec(msg->header.stamp.nanosec);
   lasermsg.mutable_header()->set_header_stamp_sec(msg->header.stamp.sec);
+  std::string ser_msg;
+  lasermsg.SerializeToString(&ser_msg);
+  mqtt_laserscan_pub.pub("mqtt_laserscan",ser_msg,0);
 }
 
 void Convert::image_b_callback(const sensor_msgs::msg::Image::ConstSharedPtr msg, MyMqttClient &mqtt_image_b)
@@ -233,7 +258,7 @@ void Convert::image_b_callback(const sensor_msgs::msg::Image::ConstSharedPtr msg
   std::string compressed_data;
   compress_data(ser_msg, compressed_data);
   std::cout << "compressed_size:" << compressed_data.size() << std::endl;
-  // mqtt_image_pub.pub("mqtt_image", compressed_data,0);
+  // mqtt_imageback_pub.pub("mqtt_image", compressed_data,0);
 
   // // 将buffer转换为vector<uint8_t>
   // std::vector<uint8_t> vector_data(ser_msg.begin(), ser_msg.end());
@@ -292,6 +317,16 @@ void Convert::CompressedImageFront_callback(const sensor_msgs::msg::CompressedIm
   int t2 = t.tv_nsec;
   int t1 = t.tv_sec;
 
+  sensors_msg::ImageProto msg_pb;
+  msg_pb.set_header_frame_id(id);
+  msg_pb.set_header_stamp_nanosec(t2);
+  msg_pb.set_header_stamp_sec(t1);
+  msg_pb.set_format(msg->format);
+  msg_pb.set_data(msg->data.data(), msg->data.size());
+  std::string ser_msg;
+  msg_pb.SerializeToString(&ser_msg);
+  mqtt_imagefront_pub.pub("mqtt_imageFront", ser_msg, 0);
+
   sensor_msgs::msg::CompressedImage Compressedimage_msg;
   Compressedimage_msg.header.frame_id = id;
   Compressedimage_msg.header.stamp.nanosec = t2;
@@ -300,13 +335,13 @@ void Convert::CompressedImageFront_callback(const sensor_msgs::msg::CompressedIm
   Compressedimage_msg.data.resize(msg->data.size());
   memcpy(Compressedimage_msg.data.data(), msg->data.data(), msg->data.size());
 
-  CompressedImageFront_pub_->publish(Compressedimage_msg);
+  // CompressedImageFront_pub_->publish(Compressedimage_msg);
 }
 void Convert::CompressedImageBack_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg)
 {
   imageBack_count++;
   std::string str1 = msg->header.frame_id;
-  std::string str2 = std::to_string(imageFront_count);
+  std::string str2 = std::to_string(imageBack_count);
   std::string str3 = " ";
   std::string id = str1 + "" + str3 + "" + str2;
   struct timespec t = {0, 0};
@@ -314,6 +349,17 @@ void Convert::CompressedImageBack_callback(const sensor_msgs::msg::CompressedIma
   int t2 = t.tv_nsec;
   int t1 = t.tv_sec;
 
+  sensors_msg::ImageProto msg_pb;
+  msg_pb.set_header_frame_id(id);
+  msg_pb.set_header_stamp_nanosec(t2);
+  msg_pb.set_header_stamp_sec(t1);
+  msg_pb.set_format(msg->format);
+  msg_pb.set_data(msg->data.data(), msg->data.size());
+  std::string ser_msg;
+  msg_pb.SerializeToString(&ser_msg);
+  mqtt_imageback_pub.pub("mqtt_imageBack", ser_msg, 0);
+
+
   sensor_msgs::msg::CompressedImage Compressedimage_msg;
   Compressedimage_msg.header.frame_id = id;
   Compressedimage_msg.header.stamp.nanosec = t2;
@@ -321,7 +367,7 @@ void Convert::CompressedImageBack_callback(const sensor_msgs::msg::CompressedIma
   Compressedimage_msg.set__format(msg->format);
   Compressedimage_msg.data.resize(msg->data.size());
   memcpy(Compressedimage_msg.data.data(), msg->data.data(), msg->data.size());
-  CompressedImageBack_pub_->publish(Compressedimage_msg);
+  // CompressedImageBack_pub_->publish(Compressedimage_msg);
 }
 void Convert::CompressedImage_mqtt_callback(const sensor_msgs::msg::CompressedImage::ConstSharedPtr msg)
 {
@@ -364,8 +410,8 @@ void Convert::CompressedImage_mqtt_callback(const sensor_msgs::msg::CompressedIm
   imgc.data.resize(msg->data.size());
   memcpy(imgc.data.data(), msg->data.data(), msg->data.size());
 
-  mqtt_image_pub.pub("mqtt_image", ser_msg, 0);
-  CompressedImageBack_pub_->publish(imgc);
+  // mqtt_image_pub.pub("mqtt_image", ser_msg, 0);
+  // CompressedImageBack_pub_->publish(imgc);
 }
 
 void Convert::imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
@@ -414,7 +460,7 @@ void Convert::imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   RosImu.set__orientation(msg->orientation);
   RosImu.set__orientation_covariance(msg->orientation_covariance);
 
-  imu_pub_->publish(RosImu);
+  // imu_pub_->publish(RosImu);
 }
 
 void Convert::compress_data(const std::string &input, std::string &output)

@@ -77,10 +77,12 @@ class Convert : public rclcpp::Node
 
         rclcpp::Publisher<std_msgs::msg::ByteMultiArray>::SharedPtr imupb_pub_;
 
-        MyMqttClient mqtt_image_pub;
+        MyMqttClient mqtt_imageback_pub;
+        MyMqttClient mqtt_imagefront_pub;
         MyMqttClient mqtt_image_sub;
         MyMqttClient mqtt_imu_pub;
         MyMqttClient mqtt_cloud_pub;
+        MyMqttClient mqtt_laserscan_pub;
         
 
         MyMqttClient mqtt_cmdvel_sub;
